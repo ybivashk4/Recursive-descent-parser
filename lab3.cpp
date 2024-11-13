@@ -12,7 +12,9 @@ int ParseAssignment::get(const std::string var){
         
         std::cout << e.what();
         std::cout << "Error in " << var << " because this var doesn't exist\n";
+        return INT32_MAX;
     }
+    return INT32_MAX;
 }
 
 void ParseAssignment::set_var(std::string name, int val) {
@@ -52,11 +54,15 @@ void ParseAssignment::procS() {
         std::cout << "error, = missing\n";
         throw;
     }
+    
     read_symbol();
-    procE();
-    if (cur_symb != ';' || cur_symb != is.eof()) {
+    
+    cur_value = procE();
+    set_var(cur_var, cur_value);
+    if (cur_symb == ';') {
         cur_value = 0;
-        cur_var.empty();
+        cur_var = cur_var.empty();
+        cur_var = "";
         return;
     }
 
@@ -65,15 +71,12 @@ void ParseAssignment::procS() {
 }
 
 void ParseAssignment::start_parse() {
-    while (cur_symb != is.eof()){
+    while (!is.eof()){
         procS();
-        
-        while (cur_symb != is.eof() && (!isalpha(cur_symb) && cur_symb != '_')) {
-            printf("cur symb is %c\n", cur_symb);
+        while (!is.eof() && !isalpha(cur_symb) && cur_symb != '_') {
             read_symbol();
         }
     }
-    
     getAllVar();
 }
 
@@ -99,7 +102,8 @@ void ParseAssignment::procIStr() {
             break;
         }
     }
-    set_var(cur_var, 0);
+    if (all_variables.find(cur_var) == all_variables.end())
+        set_var(cur_var, 0);
 }
 
 char ParseAssignment::procA() {
@@ -113,32 +117,40 @@ char ParseAssignment::procA() {
 }
 
 char ParseAssignment::procD() {
-    if (is_o_digit(cur_symb)) {
+    if (is_o_digit(cur_symb) && !is.eof()) {
         char temp_symbol = cur_symb;
         read_symbol();
         return temp_symbol;
     }
+    if (!is.eof())  read_symbol();
     return -1;
 }
 
-void ParseAssignment::procE() {
-    cur_value = procT();
-    
+int ParseAssignment::procE() {
+    int valE = procT();
     if (cur_symb == '+' || cur_symb == '-') {
-        procE2();
+        
+        procE2(valE);
     }
-    set_var(cur_var, cur_value);
+    return valE;
+    
 }
 
-void ParseAssignment::procE2() {
+void ParseAssignment::procE2(int & val) {
+    int i = 10;
     while (cur_symb == '+' || cur_symb == '-') {
         if (cur_symb == '+') {
-            cur_value += procT();
+            read_symbol();
+            val += procT();
         }
         else  {
             // ПОМЕНЯТЬ МЕСТАМИ ЕСЛИ НЕ РАБОТАЕТ
-            cur_value -= procT();
+            read_symbol();
+            val -= procT();
         }
+        
+        i--;
+        if (i == 0) break;
     }
 }
 
@@ -153,10 +165,12 @@ int ParseAssignment::procT() {
 void ParseAssignment::procT2(int & val) {
     while (cur_symb == '*' || cur_symb == '/') {
         if (cur_symb == '*') {
+            read_symbol();
             val *= procM();
         }
         else  {
             // ПОМЕНЯТЬ МЕСТАМИ ЕСЛИ НЕ РАБОТАЕТ
+            read_symbol();
             val /= procM();
         }
     }
@@ -166,11 +180,13 @@ int ParseAssignment::procM() {
     // include porcI, procK, procC
     if (cur_symb == '(') {
         read_symbol();
-        procE();
+        int temp = procE();
         if (cur_symb != ')') {
             std::cout << "() error\n";
             throw;
         }
+        read_symbol();
+        return temp;
     }
     else if (cur_symb == '-') {
         read_symbol();
@@ -178,9 +194,8 @@ int ParseAssignment::procM() {
     }
     else if (is_o_digit(cur_symb)){
         int temp_val = 0;
-        bool is_first_digit = true;
         std::string temp;
-        while (is_o_digit(cur_symb)) {
+        while (!is.eof() && is_o_digit(cur_symb)) {
             temp += cur_symb;
             procD();
         }
@@ -189,23 +204,21 @@ int ParseAssignment::procM() {
     }
     else if (isalpha(cur_symb) || cur_symb == '_') {
         std::string temp;
-        while (isalpha(cur_symb) || cur_symb == '_') {
+        while (!is.eof() && (isalpha(cur_symb) || cur_symb == '_')) {
             temp += procA();
         }
         return get(temp);
     }
+    return 0;
 }
 
 void ParseAssignment::getAllVar() {
     for (const auto & [key, value] : all_variables) {
-        std::cout << key << " = " << value << "\n";
+        os << key << " = " << value << "\n";
     }
 }
 
 int main (int argc, char ** argv) {
-    std::ifstream is;
-    is.open(argv[1], std::ios_base::in);
-
     ParseAssignment MyParse(argc, argv);
     MyParse.start_parse();
     return 0;

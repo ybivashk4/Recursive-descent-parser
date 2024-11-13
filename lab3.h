@@ -13,8 +13,8 @@ class ParseAssignment {
         bool is_eof;
         void procS();
         void procIStr(); // add name of var
-        void procE();
-        void procE2();
+        int procE();
+        void procE2(int & val);
         char procA();
         char procD();
         int procT();
@@ -23,9 +23,8 @@ class ParseAssignment {
         static bool is_o_digit(char symbol);
         void read_symbol();
         void set_var(std::string name, int val);
-    
-    public:
         int get(const std::string var);
+    public:
         void getAllVar();
         ParseAssignment(int argc, char ** argv);
         void start_parse();
