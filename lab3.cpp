@@ -83,7 +83,6 @@ void ParseAssignment::start_parse() {
 void ParseAssignment::procIStr() {
     
     cur_var += procA();
-
     while ((isalpha(cur_symb) || cur_symb == '_') || is_o_digit(cur_symb)) {
 
         if (isalpha(cur_symb) || cur_symb == '_') {
@@ -209,8 +208,14 @@ int ParseAssignment::procM() {
     }
     else if (isalpha(cur_symb) || cur_symb == '_') {
         std::string temp;
-        while (!is.eof() && (isalpha(cur_symb) || cur_symb == '_')) {
-            temp += procA();
+        while (!is.eof() && (isalpha(cur_symb) || cur_symb == '_' || is_o_digit(cur_symb))) {
+            if (is_o_digit(cur_symb)) {
+                temp += cur_symb;
+                procD();
+            }
+            else {
+                temp += procA();
+            }
         }
         return get(temp);
     }
