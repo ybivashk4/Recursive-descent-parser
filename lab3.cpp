@@ -4,16 +4,11 @@
 #include <exception>
 
 int ParseAssignment::get(const std::string var){
-   
-    try {
+   if (all_variables.find( var ) != all_variables.end()) {
         return all_variables[var];
-    }
-    catch (std::exception e) {
-        
-        std::cout << e.what();
-        std::cout << "Error in " << var << " because this var doesn't exist\n";
-        return INT32_MAX;
-    }
+   }
+    std::cout << "Invalid syntax\n";
+    exit(1);
     return INT32_MAX;
 }
 
@@ -58,7 +53,12 @@ void ParseAssignment::procS() {
     read_symbol();
     
     cur_value = procE();
+    if (cur_symb != ';') {
+        std::cout << "Wrong syntax\n";
+        exit(1);
+    }
     set_var(cur_var, cur_value);
+    os << cur_var << " = " << all_variables[cur_var] << std::endl;
     if (cur_symb == ';') {
         cur_value = 0;
         cur_var = cur_var.empty();
@@ -99,7 +99,8 @@ void ParseAssignment::procIStr() {
             throw;
         }
         else {
-            break;
+            std::cout << "Invalid Syntax\n";
+            exit(1);
         }
     }
     if (all_variables.find(cur_var) == all_variables.end())
@@ -111,6 +112,10 @@ char ParseAssignment::procA() {
         char temp_symbol = cur_symb;
         read_symbol();
         return temp_symbol;
+    }
+    else {
+        std::cout << "wrong syntax\n";
+        exit(1);
     }
     read_symbol();
     return -1;
@@ -213,8 +218,9 @@ int ParseAssignment::procM() {
 }
 
 void ParseAssignment::getAllVar() {
+    os << "\n\tALL results var is: \n";
     for (const auto & [key, value] : all_variables) {
-        os << key << " = " << value << "\n";
+        os << key << " = " << value << std::endl;
     }
 }
 
