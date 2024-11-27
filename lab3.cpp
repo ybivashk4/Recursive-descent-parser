@@ -63,6 +63,7 @@ void ParseAssignment::procS() {
         cur_value = 0;
         cur_var = cur_var.empty();
         cur_var = "";
+        read_symbol();
         return;
     }
 
@@ -73,9 +74,11 @@ void ParseAssignment::procS() {
 void ParseAssignment::start_parse() {
     while (!is.eof()){
         procS();
-        while (!is.eof() && !isalpha(cur_symb) && cur_symb != '_') {
+        while (cur_symb >= 0 && cur_symb <= 32) {
             read_symbol();
+            
         }
+        
     }
     getAllVar();
 }
@@ -148,7 +151,6 @@ void ParseAssignment::procE2(int & val) {
             val += procT();
         }
         else  {
-            // ПОМЕНЯТЬ МЕСТАМИ ЕСЛИ НЕ РАБОТАЕТ
             read_symbol();
             val -= procT();
         }
@@ -203,7 +205,7 @@ int ParseAssignment::procM() {
             temp += cur_symb;
             procD();
         }
-        temp_val = std::stoi(temp);
+        temp_val = std::stoi(temp, (std::size_t *)0, 8);
         return temp_val;
     }
     else if (isalpha(cur_symb) || cur_symb == '_') {
@@ -234,3 +236,4 @@ int main (int argc, char ** argv) {
     MyParse.start_parse();
     return 0;
 }
+// 2asdadasdasdasda = 123;
